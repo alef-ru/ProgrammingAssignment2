@@ -48,9 +48,33 @@ computeInverse <- function(m){
     return(NULL)
   }
   if (dim(m)[1] == dim(m)[2])
-    return(solve(m))  
+    solve(m)  
   else{
-    warning('Sorry, but i can work only with square matrix :( ')
-    return(NULL)
+    exp.mat(m, -1)
   } 
+}
+
+#This code is from here: http://stackoverflow.com/questions/21364060/calculate-inverse-of-a-non-square-matrix-in-r
+#The exp.mat function performs can calculate the pseudoinverse of a matrix (EXP=-1)
+#and other exponents of matrices, such as square roots (EXP=0.5) or square root of 
+#its inverse (EXP=-0.5). 
+#The function arguments are a matrix (MAT), an exponent (EXP), and a tolerance
+#level for non-zero singular values.
+exp.mat<-function(MAT, EXP, tol=NULL){
+  MAT <- as.matrix(MAT)
+  matdim <- dim(MAT)
+  if(is.null(tol)){
+    tol=min(1e-7, .Machine$double.eps*max(matdim)*max(MAT))
+  }
+  if(matdim[1]>=matdim[2]){ 
+    svd1 <- svd(MAT)
+    keep <- which(svd1$d > tol)
+    res <- t(svd1$u[,keep]%*%diag(svd1$d[keep]^EXP, nrow=length(keep))%*%t(svd1$v[,keep]))
+  }
+  if(matdim[1]<matdim[2]){ 
+    svd1 <- svd(t(MAT))
+    keep <- which(svd1$d > tol)
+    res <- svd1$u[,keep]%*%diag(svd1$d[keep]^EXP, nrow=length(keep))%*%t(svd1$v[,keep])
+  }
+  return(res)
 }
